@@ -63,27 +63,32 @@
   "Face for language keywords."
   :group 'cypher-faces)
 
-
 (defvar cypher-keywords
   (regexp-opt
-   '("abs" "all" "and" "any" "as" "avg" "by"
-     "coalesce" "collect" "count" "create" "cypher" "delete"
-     "desc" "extract" "filter" "foreach" "head"
-     "id" "in" "is" "last" "left" "length" "limit"
-     "lower" "ltrim" "match"
-     "node" "node_auto_index" "nodes" "none" "not" "null" "or" "order"
+   '("abs" "all" "and" "any" "as" "avg"
+     "coalesce" "collect" "count" "create" "cypher"
+     "delete" "desc" "extract" "filter" "foreach"
+     "has" "head" "id" "in" "is"
+     "last" "left" "length" "limit" "lower" "ltrim" "match"
+     "node" "node_auto_index" "nodes" "none" "not" "null"
+     "or" "order by"
      "range" "reduce" "reduce" "relationships" "replace" "return" "right"
      "round" "rtrim"
      "set" "sign" "single" "sqrt" "start" "str" "substring"
      "tail" "trim" "type" "unique" "upper" "where" "with"))
   "Cypher keywords.")
 
+(defvar cypher-functions
+  (regexp-opt
+   '(""))
+  "Cypher functions")
+
 (defvar cypher-font-lock-keywords
   (list
    (cons (concat "\\<\\(" cypher-keywords "\\)\\>") '(1 'cypher-keyword-face))
    '("-\\[\\([[:alnum:]:_]+\\)" 1 'cypher-relation-face)
    '("(\\([[:alnum:]_:]+\\)[ ]?[{)]" 1 'cypher-node-face)
-   '("\\([[:alnum:]_]+\\)[ ]?:" 1 'cypher-symbol-face)
+   '("\\([[:alnum:]_]+:\\)[ ]?" 1 'cypher-symbol-face)
    ))
 
  (defvar cypher-mode-syntax-table
@@ -96,6 +101,7 @@
      ;; ' " : strings
      (modify-syntax-entry ?\" "\"" table)
      (modify-syntax-entry ?\' "\"" table)
+     (modify-syntax-entry ?\` "\"" table)
      table)
    "Syntax table.")
 
