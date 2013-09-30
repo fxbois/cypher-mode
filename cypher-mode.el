@@ -67,7 +67,7 @@
   (regexp-opt
    '("abs" "all" "and" "any" "as" "avg"
      "coalesce" "collect" "count" "create" "cypher"
-     "delete" "desc" "extract" "filter" "foreach"
+     "delete" "desc" "distinct" "extract" "filter" "foreach"
      "has" "head" "id" "in" "is"
      "last" "left" "length" "limit" "lower" "ltrim" "match"
      "node" "node_auto_index" "nodes" "none" "not" "null"
