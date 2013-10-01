@@ -49,7 +49,7 @@
   :group 'cypher-faces)
 
 (defface cypher-node-face
-  '((t :inherit font-lock-function-name-face))
+  '((t :inherit font-lock-constant-name-face))
   "Face for language keywords."
   :group 'cypher-faces)
 
@@ -86,8 +86,8 @@
 (defvar cypher-font-lock-keywords
   (list
    (cons (concat "\\<\\(" cypher-keywords "\\)\\>") '(1 'cypher-keyword-face))
-   '("-\\[\\([[:alnum:]:_]+\\)" 1 'cypher-relation-face)
-   '("(\\([[:alnum:]_:]+\\)[ ]?[{)]" 1 'cypher-node-face)
+   '("-\\[\\(?:[[:alnum:]_]+\\)?\\(:[[:alnum:]_]+\\)" 1 'cypher-relation-face)
+   '("(\\(?:[[:alnum:]_]+\\)?\\(:[[:alnum:]_]+\\)[ ]?[{)]" 1 'cypher-node-face)
    '("\\([[:alnum:]_]+:\\)[ ]?" 1 'cypher-symbol-face)
    ))
 
