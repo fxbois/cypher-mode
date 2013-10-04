@@ -43,13 +43,23 @@
   :group 'cypher-mode
   :group 'faces)
 
+(defface cypher-clause-face
+  '((t :inherit font-lock-builtin-face))
+  "Face for language clauses."
+  :group 'cypher-faces)
+
 (defface cypher-keyword-face
   '((t :inherit font-lock-keyword-face))
   "Face for language keywords."
   :group 'cypher-faces)
 
+(defface cypher-function-face
+  '((t :inherit font-lock-function-name-face))
+  "Face for language function."
+  :group 'cypher-faces)
+
 (defface cypher-node-face
-  '((t :inherit font-lock-constant-name-face))
+  '((t :inherit font-lock-constant-face))
   "Face for language keywords."
   :group 'cypher-faces)
 
@@ -63,19 +73,27 @@
   "Face for language keywords."
   :group 'cypher-faces)
 
+(defvar cypher-clauses
+  (regexp-opt
+   '("create" "create unique" "delete" "desc" "foreach" "limit" "match"
+     "order by" "return" "set" "start" "union" "where" "with"))
+  "Cypher clauses.")
+
 (defvar cypher-keywords
   (regexp-opt
-   '("abs" "all" "and" "any" "as" "avg"
-     "coalesce" "collect" "count" "create" "cypher"
-     "delete" "desc" "distinct" "extract" "filter" "foreach"
-     "has" "head" "id" "in" "is"
-     "last" "left" "length" "limit" "lower" "ltrim" "match"
-     "node" "node_auto_index" "nodes" "none" "not" "null"
-     "or" "order by"
-     "range" "reduce" "reduce" "relationships" "replace" "return" "right"
-     "round" "rtrim"
-     "set" "sign" "single" "sqrt" "start" "str" "substring"
-     "tail" "trim" "type" "unique" "upper" "where" "with"))
+   '("in" "as"
+     ;; "abs" "all" "and" "any" "as" "avg"
+     ;; "coalesce" "collect" "count" "cypher"
+     ;; "desc" "distinct" "extract" "filter"
+     ;; "has" "head" "id" "in" "is"
+     ;; "last" "left" "length" "limit" "lower" "ltrim"
+     ;; "node" "node_auto_index" "nodes" "none" "not" "null"
+     ;; "or" "order by"
+     ;; "range" "reduce" "reduce" "relationships" "replace" "right"
+     ;; "round" "rtrim"
+     ;; "sign" "single" "sqrt" "str" "substring"
+     ;; "tail" "trim" "type" "upper"
+     ))
   "Cypher keywords.")
 
 (defvar cypher-functions
@@ -85,10 +103,12 @@
 
 (defvar cypher-font-lock-keywords
   (list
+   (cons (concat "\\<\\(" cypher-clauses "\\)\\>") '(1 'cypher-clause-face))
    (cons (concat "\\<\\(" cypher-keywords "\\)\\>") '(1 'cypher-keyword-face))
+   '("\\([[:alpha:]_:]+\\)[ ]?(" 1 'cypher-function-face)
    '("-\\[\\(?:[[:alnum:]_]+\\)?\\(:[[:alnum:]_]+\\)" 1 'cypher-relation-face)
    '("(\\(?:[[:alnum:]_]+\\)?\\(:[[:alnum:]_]+\\)[ ]?[{)]" 1 'cypher-node-face)
-   '("\\([[:alnum:]_]+:\\)[ ]?" 1 'cypher-symbol-face)
+   '("\\([[:alnum:]_]+[ ]?:\\)" 1 'cypher-symbol-face)
    ))
 
  (defvar cypher-mode-syntax-table
