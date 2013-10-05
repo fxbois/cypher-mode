@@ -151,12 +151,7 @@
   )
 
 (defvar cypher-font-lock-defaults
-  '(cypher-font-lock-keywords
-    nil
-    t
-;;    (("_" . "w"))
-;;    nil
-    ))
+  '(cypher-font-lock-keywords nil t))
 
 ;;;###autoload
 (define-derived-mode cypher-mode cypher-prog-mode "Cypher"
