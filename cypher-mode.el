@@ -2,7 +2,7 @@
 
 ;; Copyright 2013 François-Xavier Bois
 
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: Sept 2013
@@ -35,13 +35,18 @@
 
 (defgroup cypher nil
   "Major mode for editing cypher scripts."
-  :version "0.0.1"
+  :version "0.0.2"
   :group 'languages)
 
 (defgroup cypher-faces nil
   "Faces for syntax highlighting."
   :group 'cypher-mode
   :group 'faces)
+
+(defcustom cypher-indent-offset 2
+  "Indentation level."
+  :type 'integer
+  :group 'cypher-mode)
 
 (defface cypher-clause-face
   '((t :inherit font-lock-builtin-face))
@@ -164,7 +169,7 @@
   (setq comment-end ""
         comment-start "//"
         font-lock-defaults cypher-font-lock-defaults
-        indent-line-function 'indent-relative)
+        indent-line-function 'cypher-indent-line)
   )
 
 (defun cypher-reload ()
@@ -179,8 +184,22 @@
 (defun cypher-indent-line ()
   "Indent current line."
   (save-excursion
-    (let ((inhibit-modification-hooks t))
-      0)))
+    (let ((inhibit-modification-hooks t) (offset))
+      (cond
+       ((string-match-p "^\s*\\(ORDER\\|MATCH\\|LIMIT\\|START\\|RETURN\\|WITH\\)" (thing-at-point 'line))
+        (setq offset 0)
+        )
+       (t
+        (setq offset cypher-indent-offset))
+       )
+      (when offset
+        (let ((diff (- (current-column) (current-indentation))))
+          (setq offset (max 0 offset))
+          (indent-line-to offset)
+          (if (> diff 0) (forward-char diff))
+          )
+        )
+      )))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cypher\\'" . cypher-mode))
