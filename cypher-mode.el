@@ -2,7 +2,11 @@
 
 ;; Copyright 2013 François-Xavier Bois
 
+<<<<<<< HEAD
 ;; Version: 0.0.2
+=======
+;; Version: 0.0.3
+>>>>>>> better indentation
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: Sept 2013
@@ -35,7 +39,11 @@
 
 (defgroup cypher nil
   "Major mode for editing cypher scripts."
+<<<<<<< HEAD
   :version "0.0.2"
+=======
+  :version "0.0.3"
+>>>>>>> better indentation
   :group 'languages)
 
 (defgroup cypher-faces nil
@@ -178,6 +186,7 @@
 
 (defun cypher-indent-line ()
   "Indent current line."
+<<<<<<< HEAD
   (save-excursion
     (let ((inhibit-modification-hooks t) (offset))
       (cond
@@ -195,6 +204,33 @@
           )
         )
       )))
+=======
+  (let ((inhibit-modification-hooks t) (offset) pos
+        (regexp "^\s*\\(CREATE\\|ORDER\\|MATCH\\|LIMIT\\|START\\|RETURN\\|WITH\\)"))
+    (save-excursion
+      (back-to-indentation)
+      (setq pos (point))
+      (cond
+       ((string-match-p regexp (thing-at-point 'line))
+        (setq offset 0)
+        )
+       ((re-search-backward regexp nil t)
+        (goto-char (match-end 1))
+        (skip-chars-forward "[:space:]")
+        (setq offset (current-column))
+        )
+       (t
+        (setq offset cypher-indent-offset))
+       ))
+    (when offset
+      (let ((diff (- (current-column) (current-indentation))))
+        (setq offset (max 0 offset))
+        (indent-line-to offset)
+        (if (> diff 0) (forward-char diff))
+        )
+      )
+      ))
+>>>>>>> better indentation
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cypher\\'" . cypher-mode))
