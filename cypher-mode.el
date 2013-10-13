@@ -2,7 +2,7 @@
 
 ;; Copyright 2013 François-Xavier Bois
 
-;; Version: 0.0.5
+;; Version: 0.0.6
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: Sept 2013
@@ -35,7 +35,7 @@
 
 (defgroup cypher nil
   "Major mode for editing cypher scripts."
-  :version "0.0.5"
+  :version "0.0.6"
   :group 'languages)
 
 (defgroup cypher-faces nil
@@ -83,6 +83,12 @@
   "Face for language keywords."
   :group 'cypher-faces)
 
+(defface cypher-variable-face
+  '((t :foreground "grey85"))
+  "Face for vars."
+  :group 'cypher-faces)
+
+
 (defvar cypher-clauses
   (regexp-opt
    '("all" "any" "as" "asc" "create" "create unique" "delete" "desc" "distinct"
@@ -112,6 +118,11 @@
 ;;   '("\\()<?-->?(\\|)<?-\\[\\|\\]->?(\\|[<-]?-\\[\\|\\]-[>-]?\\)" 1 'cypher-pattern-face)
 ;;   '(" \\((\\)" 1 'cypher-pattern-face)
 ;;   '("\\()\\)\\($\\| \\|,\\)" 1 'cypher-pattern-face)
+
+
+   '(")?\\(<?->?\\)\\[" 1 'cypher-pattern-face)
+   '("\\]\\(<?->?\\)(?" 1 'cypher-pattern-face)
+   '("--\\|->\\|<-" 0 'cypher-pattern-face)
    (cons (concat "\\<\\(" cypher-clauses "\\)\\>") '(1 'cypher-clause-face))
    (cons (concat "\\<\\(" cypher-keywords "\\)\\>") '(1 'cypher-keyword-face))
    (cons (concat "\\<\\(" cypher-functions "\\)\\((\\).*?\\()\\)")
@@ -122,7 +133,8 @@
    '("\\(?:[[:alpha:]_]+\\)?\\(:[[:alpha:]_]+\\)"
      1 'cypher-node-type-face)
    '("(\\(:[[:alnum:]_]+\\)" 1 'cypher-node-type-face)
-   '("\\([[:alnum:]_]+[ ]?:\\)" 1 'cypher-symbol-face)
+   '("\\([[:alpha:]_]+[ ]?:\\)" 1 'cypher-symbol-face)
+   '("[[:alpha:]][[:alpha:]_]*" 0 'cypher-variable-face)
   ))
 
  (defvar cypher-mode-syntax-table
