@@ -2,7 +2,7 @@
 
 ;; Copyright 2013 François-Xavier Bois
 
-;; Version: 0.0.3
+;; Version: 0.0.5
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: Sept 2013
@@ -35,7 +35,7 @@
 
 (defgroup cypher nil
   "Major mode for editing cypher scripts."
-  :version "0.0.3"
+  :version "0.0.5"
   :group 'languages)
 
 (defgroup cypher-faces nil
@@ -63,14 +63,19 @@
   "Face for language function."
   :group 'cypher-faces)
 
-(defface cypher-node-face
+(defface cypher-node-type-face
   '((t :inherit font-lock-constant-face))
   "Face for language keywords."
   :group 'cypher-faces)
 
-(defface cypher-relation-face
+(defface cypher-relation-type-face
   '((t :inherit font-lock-type-face))
   "Face for language keywords."
+  :group 'cypher-faces)
+
+(defface cypher-pattern-face
+  '((t :foreground "DeepPink" :background "grey16" :bold t))
+  "Face for pattern struct."
   :group 'cypher-faces)
 
 (defface cypher-symbol-face
@@ -80,41 +85,45 @@
 
 (defvar cypher-clauses
   (regexp-opt
-   '("create" "create unique" "delete" "desc" "foreach" "limit" "match"
-     "order by" "return" "set" "start" "union" "where" "with"))
+   '("all" "any" "as" "asc" "create" "create unique" "delete" "desc" "distinct"
+     "foreach" "in" "is null" "limit" "match" "none" "order by" "return" "set"
+     "skip" "single" "start" "union" "where" "with"))
   "Cypher clauses.")
 
 (defvar cypher-keywords
   (regexp-opt
-   '("in" "as"
-     ;; "abs" "all" "and" "any" "as" "avg"
-     ;; "coalesce" "collect" "count" "cypher"
-     ;; "desc" "distinct" "extract" "filter"
-     ;; "has" "head" "id" "in" "is"
-     ;; "last" "left" "length" "limit" "lower" "ltrim"
-     ;; "node" "node_auto_index" "nodes" "none" "not" "null"
-     ;; "or" "order by"
-     ;; "range" "reduce" "reduce" "relationships" "replace" "right"
-     ;; "round" "rtrim"
-     ;; "sign" "single" "sqrt" "str" "substring"
-     ;; "tail" "trim" "type" "upper"
-     ))
+   '("or" "and" "not" "true" "false"))
   "Cypher keywords.")
 
 (defvar cypher-functions
   (regexp-opt
-   '(""))
+   '("abs" "avg" "coalesce" "collect" "count" "filter" "has" "head" "id"
+     "last" "left" "length" "lower" "ltrim" "max" "min" "node" "nodes"
+     "percentile_cont" "percentile_disc" "range" "relationships" "replace"
+     "right" "round" "rtrim" "sign" "sqrt" "str" "substring" "sum" "tail"
+     "timestamp" "trim" "type"
+     "upper"
+     "node:node_auto_index"
+     ))
   "Cypher functions")
 
 (defvar cypher-font-lock-keywords
   (list
+;;   '("\\()<?-->?(\\|)<?-\\[\\|\\]->?(\\|[<-]?-\\[\\|\\]-[>-]?\\)" 1 'cypher-pattern-face)
+;;   '(" \\((\\)" 1 'cypher-pattern-face)
+;;   '("\\()\\)\\($\\| \\|,\\)" 1 'cypher-pattern-face)
    (cons (concat "\\<\\(" cypher-clauses "\\)\\>") '(1 'cypher-clause-face))
    (cons (concat "\\<\\(" cypher-keywords "\\)\\>") '(1 'cypher-keyword-face))
-   '("\\([[:alpha:]_:]+\\)[ ]?(" 1 'cypher-function-face)
-   '("-\\[\\(?:[[:alnum:]_]+\\)?\\(:[[:alnum:]_]+\\)" 1 'cypher-relation-face)
-   '("(\\(?:[[:alnum:]_]+\\)?\\(:[[:alnum:]_]+\\)[ ]?[{)]" 1 'cypher-node-face)
+   (cons (concat "\\<\\(" cypher-functions "\\)\\((\\).*?\\()\\)")
+         '((1 'cypher-keyword-face t t)
+           (2 nil t t) (3 nil t t)))
+   '("-\\[\\(?:[[:alpha:]_]+\\)?\\(:[[:alpha:]_]+\\)"
+     1 'cypher-relation-type-face)
+   '("\\(?:[[:alpha:]_]+\\)?\\(:[[:alpha:]_]+\\)"
+     1 'cypher-node-type-face)
+   '("(\\(:[[:alnum:]_]+\\)" 1 'cypher-node-type-face)
    '("\\([[:alnum:]_]+[ ]?:\\)" 1 'cypher-symbol-face)
-   ))
+  ))
 
  (defvar cypher-mode-syntax-table
    (let ((table (make-syntax-table)))
@@ -178,14 +187,19 @@
 
 (defun cypher-indent-line ()
   "Indent current line."
-  (let ((inhibit-modification-hooks t) (offset) pos
-        (regexp "^\s*\\(CREATE\\|ORDER\\|MATCH\\|LIMIT\\|START\\|RETURN\\|WITH\\)"))
+  (let (ctx (inhibit-modification-hooks t) (offset) pos
+        (regexp "^\s*\\(CREATE\\|ORDER\\|MATCH\\|LIMIT\\|SET\\|SKIP\\|START\\|RETURN\\|WITH\\|WHERE\\|DELETE\\|FOREACH\\)"))
+
     (save-excursion
       (back-to-indentation)
       (setq pos (point))
+      (setq ctx (cypher-block-context pos))
       (cond
        ((string-match-p regexp (thing-at-point 'line))
         (setq offset 0)
+        )
+       ((plist-get ctx :arg-inline)
+        (setq offset (plist-get ctx :column))
         )
        ((re-search-backward regexp nil t)
         (goto-char (match-end 1))
@@ -204,8 +218,135 @@
       )
       ))
 
+(defun cypher-block-context (&optional pos)
+  "Count opened opened block at point."
+  (interactive)
+  (unless pos (setq pos (point)))
+  (save-excursion
+    (goto-char pos)
+    (let ((continue t)
+          (match "")
+          (case-found nil)
+          (case-count 0)
+          (queues (make-hash-table :test 'equal))
+          (opened-blocks 0)
+          (col-num 0)
+          (regexp "[\]\[}{)(]")
+          (num-opened 0)
+          close-char n queue arg-inline arg-inline-checked char lines)
+
+      (while (and continue (re-search-backward regexp nil t))
+        (setq match (match-string-no-properties 0)
+              char (char-after))
+
+        (cond
+
+         ((member char '(?\{ ?\( ?\[))
+          (cond
+           ((eq char ?\() (setq close-char ?\)))
+           ((eq char ?\{) (setq close-char ?\}))
+           ((eq char ?\[) (setq close-char ?\])))
+
+          (setq queue (gethash char queues nil))
+          (setq queue (push (cons (point) (cypher-line-number)) queue))
+          (puthash char queue queues)
+          ;;(message "%c queue=%S" char queue)
+
+          (setq queue (gethash close-char queues nil))
+          (setq n (length queue))
+          (cond
+           ((> n 0)
+            (setq queue (cdr queue))
+            (puthash close-char queue queues)
+            ;;(message "%c queue=%S" close-char queue)
+            (setq queue (gethash char queues nil))
+            (setq queue (cdr queue))
+            (puthash char queue queues)
+            ;;(message "%c queue=%S" char queue)
+            )
+           ((= n 0)
+            (setq num-opened (1+ num-opened))
+            ;;(message "num-opened=%S %S" num-opened (point))
+            )
+           )
+
+          (when (and (= num-opened 1) (null arg-inline-checked))
+            (setq arg-inline-checked t)
+            ;;              (when (not (member (char-after (1+ (point))) '(?\n ?\r ?\{)))
+            (when (not (looking-at-p ".[ ]*$"))
+              (setq arg-inline t
+                    continue nil
+                    col-num (1+ (current-column))))
+            ;;              (message "pt=%S" (point))
+            )
+
+          );case
+
+         ((member char '(?\} ?\) ?\]))
+          (setq queue (gethash char queues nil))
+          (setq queue (push (point) queue))
+          (puthash char queue queues)
+          ;;            (message "%c queue=%S" char queue)
+          )
+
+         );cond
+
+      );while
+
+      (unless arg-inline
+        (maphash
+         (lambda (char queue)
+           (when (member char '(?\{ ?\( ?\[))
+             ;;(message "%c => %S" char queue)
+             (dolist (pair queue)
+               (setq n (cdr pair))
+               (unless (member n lines)
+                 (push n lines))
+               )
+             );when
+           )
+         queues)
+        (setq opened-blocks (length lines))
+        (when (and case-found (> case-count 0))
+          (goto-char pos)
+          (back-to-indentation)
+          (when (not (looking-at-p "}"))
+            (setq opened-blocks (1+ opened-blocks))
+            )
+          )
+        );unless
+
+      ;;      (message "opened-blocks(%S) col-num(%S) arg-inline(%S)" opened-blocks col-num arg-inline)
+
+      (setq ctx (list :block-level opened-blocks
+                      :arg-inline arg-inline
+                      :column col-num))
+
+      (message "ctx=%S" ctx)
+
+      ctx
+
+      )))
+
+(defun cypher-line-number (&optional pos)
+  "Return line number at point."
+  (unless pos (setq pos (point)))
+  (let (ret)
+    (setq ret (+ (count-lines 1 pos)
+                 (if (= (cypher-column-at-pos pos) 0) 1 0)))
+    ret))
+
+(defun cypher-column-at-pos (&optional pos)
+  "Column at point"
+  (unless pos (setq pos (point)))
+  (save-excursion
+    (goto-char pos)
+    (current-column)
+    ))
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cypher\\'" . cypher-mode))
+(add-to-list 'auto-mode-alist '("\\.cyp\\'" . cypher-mode))
 
 (provide 'cypher-mode)
 
