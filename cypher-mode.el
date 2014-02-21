@@ -357,8 +357,9 @@
     ))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.cypher\\'" . cypher-mode))
-(add-to-list 'auto-mode-alist '("\\.cyp\\'" . cypher-mode))
+(progn
+  (add-to-list 'auto-mode-alist '("\\.cypher\\'" . cypher-mode))
+  (add-to-list 'auto-mode-alist '("\\.cyp\\'" . cypher-mode)))
 
 (provide 'cypher-mode)
 
