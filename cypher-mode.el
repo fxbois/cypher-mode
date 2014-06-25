@@ -93,7 +93,10 @@
   (regexp-opt
    '("all" "any" "as" "asc" "create" "create unique" "delete" "desc" "distinct"
      "foreach" "in" "is null" "limit" "match" "none" "order by" "return" "set"
-     "skip" "single" "start" "union" "where" "with"))
+     "skip" "single" "start" "union" "where" "with"
+     ;; additional
+     "load csv" "with headers" "from" "merge" "constraint" "assert"
+     "using periodic commit"))
   "Cypher clauses.")
 
 (defvar cypher-keywords
@@ -110,6 +113,8 @@
      "timestamp" "trim" "type"
      "upper"
      "node:node_auto_index"
+     ;; http://docs.neo4j.org/chunked/stable/query-functions-scalar.html
+     "toint" "tofloat"
      ))
   "Cypher functions")
 
