@@ -88,34 +88,39 @@
   "Face for vars."
   :group 'cypher-faces)
 
-
+;; clauses, keywords and functions extracted using https://gist.github.com/xshyamx/7863e7b208a55f1bbfaa
 (defvar cypher-clauses
   (regexp-opt
-   '("all" "any" "as" "asc" "create" "create unique" "delete" "desc" "distinct"
-     "foreach" "in" "is null" "limit" "match" "none" "order by" "return" "set"
-     "skip" "single" "start" "union" "where" "with"
-     ;; additional
-     "load csv" "with headers" "from" "merge" "constraint" "assert"
-     "using periodic commit"))
+   '("case" "create" "delete" "foreach" "load csv" "match" "merge" "on" "remove"
+     "return" "set" "start" "union" "unwind" "using periodic commit" "using"
+     "when" "where" "with"))
   "Cypher clauses.")
 
 (defvar cypher-keywords
   (regexp-opt
-   '("or" "and" "not" "true" "false"))
+   '("all" "allshortestpaths" "and" "any" "as" "asc" "ascending" "assert" "by"
+     "case" "constraint on" "count" "create constraint on" "create index on"
+     "create unique" "create" "delete" "desc" "descending" "distinct"
+     "drop constraint on" "drop index on" "drop" "else" "end" "extract" "false"
+     "fieldterminator" "filter" "foreach" "from" "has" "in" "is not null"
+     "is null" "is unique" "is" "limit" "load csv" "match" "merge" "node" "none"
+     "not" "null" "on create" "on match" "on" "optional match" "or" "order by"
+     "reduce" "rel" "relationship" "remove" "return distinct" "return" "scan"
+     "set" "shortestpath" "single" "skip" "start" "then" "true" "union all"
+     "union" "unique" "unwind" "using index" "using periodic commit" "using scan"
+     "when" "where" "with distinct" "with headers" "with" "xor"))
   "Cypher keywords.")
 
 (defvar cypher-functions
   (regexp-opt
-   '("abs" "avg" "coalesce" "collect" "count" "filter" "has" "head" "id"
-     "last" "left" "length" "lower" "ltrim" "max" "min" "node" "nodes"
-     "percentile_cont" "percentile_disc" "range" "relationships" "replace"
-     "right" "round" "rtrim" "sign" "sqrt" "str" "substring" "sum" "tail"
-     "timestamp" "trim" "type"
-     "upper"
-     "node:node_auto_index"
-     ;; http://docs.neo4j.org/chunked/stable/query-functions-scalar.html
-     "toint" "tofloat"
-     ))
+   '("abs" "acos" "asin" "atan" "atan2" "avg" "ceil" "coalesce" "collect" "cos"
+     "cot" "count" "degrees" "e" "endnode" "exists" "exp" "floor" "has"
+     "haversin" "head" "id" "labels" "last" "left" "length" "log" "log10"
+     "lower" "ltrim" "max" "min" "nodes" "percentilecont" "percentiledisc" "pi"
+     "radians" "rand" "range" "reduce" "relationships" "rels" "replace" "right"
+     "round" "rtrim" "sign" "sin" "size" "split" "sqrt" "startnode" "stdev"
+     "stdevp" "str" "substring" "sum" "tail" "tan" "timestamp" "tofloat" "toint"
+     "tolower" "tostring" "toupper" "trim" "type" "upper"))
   "Cypher functions")
 
 (defvar cypher-font-lock-keywords
