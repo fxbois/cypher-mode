@@ -340,13 +340,13 @@
 
       ;;      (message "opened-blocks(%S) col-num(%S) arg-inline(%S)" opened-blocks col-num arg-inline)
 
-      (setq ctx (list :block-level opened-blocks
-                      :arg-inline arg-inline
-                      :column col-num))
+      (let ((ctx (list :block-level opened-blocks
+                       :arg-inline arg-inline
+                       :column col-num)))
 
-      (message "ctx=%S" ctx)
+        (message "ctx=%S" ctx)
 
-      ctx
+        ctx)
 
       )))
 
